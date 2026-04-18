@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f4f4f4;
+  --foreground: #2f3338;
+
+  --cygnum-green: #008f4f;
+  --cygnum-green-dark: #007543;
+  --cygnum-green-soft: #e8f5ee;
+
+  --cygnum-charcoal: #3f4349;
+  --cygnum-charcoal-2: #55595f;
+
+  --cygnum-red: #c8102e;
+  --cygnum-red-dark: #a50d26;
+
+  --cygnum-white: #ffffff;
+  --cygnum-border: #d7dadd;
+  --cygnum-surface: #f8f8f8;
+}
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-cygnum-green: var(--cygnum-green);
+  --color-cygnum-green-dark: var(--cygnum-green-dark);
+  --color-cygnum-green-soft: var(--cygnum-green-soft);
+
+  --color-cygnum-charcoal: var(--cygnum-charcoal);
+  --color-cygnum-charcoal-2: var(--cygnum-charcoal-2);
+
+  --color-cygnum-red: var(--cygnum-red);
+  --color-cygnum-red-dark: var(--cygnum-red-dark);
+
+  --color-cygnum-white: var(--cygnum-white);
+  --color-cygnum-border: var(--cygnum-border);
+  --color-cygnum-surface: var(--cygnum-surface);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
