@@ -90,7 +90,7 @@ function FormulaBlock({
   lines: string[];
 }) {
   return (
-    <div className="rounded-xl border border-[#E5EAEE] bg-[#FBFCFD] p-4">
+    <div className="report-formula rounded-xl border border-[#E5EAEE] bg-[#FBFCFD] p-4">
       <p className="text-sm font-semibold text-[#1F2937]">{title}</p>
       <div className="mt-3 space-y-2 font-mono text-xs leading-6 text-[#52606D]">
         {lines.map((line, index) => (
@@ -329,8 +329,8 @@ export default async function ReportsPage({
   const moduleDefaultsEntries = Object.entries(input.moduleDefaults ?? {});
 
   return (
-    <div className="space-y-8 print:space-y-6">
-      <section className="rounded-2xl border border-[#D9E1E7] bg-white p-6 shadow-sm print:rounded-none print:border-none print:p-0 print:shadow-none">
+    <div className="report-print-root report-document space-y-8">
+      <section className="report-section report-cover rounded-2xl border border-[#D9E1E7] bg-white p-6 shadow-sm">
         <div className="flex flex-col gap-5 border-b border-[#E7ECEF] pb-5 print:border-b print:pb-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-4xl">
             <p className="text-xs font-medium uppercase tracking-[0.22em] text-[#667085]">
@@ -346,7 +346,7 @@ export default async function ReportsPage({
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-3 print:hidden">
+          <div className="print-hidden flex flex-wrap gap-3">
             <Link
               href={`/projects/${projectId}/results`}
               className="inline-flex rounded-lg border border-[#D9E1E7] bg-white px-4 py-2 text-sm font-medium text-[#1F2937]"
@@ -354,14 +354,13 @@ export default async function ReportsPage({
               Back to Results
             </Link>
             <PrintReportButton />
-            <button
-              type="button"
-              disabled
-              className="inline-flex cursor-not-allowed rounded-lg border border-[#D9E1E7] bg-[#F7F9FA] px-4 py-2 text-sm font-medium text-[#98A2B3]"
-              title="PDF endpoint comes next"
-            >
-              PDF endpoint next
-            </button>
+            <Link
+  href={`/projects/${projectId}/reports/pdf`}
+  target="_blank"
+  className="inline-flex rounded-lg border border-[#D9E1E7] bg-white px-4 py-2 text-sm font-medium text-[#1F2937]"
+>
+  Export PDF
+</Link>
           </div>
         </div>
 
@@ -421,7 +420,7 @@ export default async function ReportsPage({
         </div>
       </section>
 
-      <section className="grid gap-8 xl:grid-cols-[1.15fr_0.85fr] print:break-before-page">
+      <section className="report-section grid gap-8 xl:grid-cols-[1.15fr_0.85fr]">
         <SectionCard
           title="Executive summary"
           description="Headline project results for rapid engineering review."
@@ -475,7 +474,7 @@ export default async function ReportsPage({
         <IntensityScoreCard intensity={intensity} />
       </section>
 
-      <section className="grid gap-8 xl:grid-cols-[1fr_1fr] print:break-before-page">
+      <section className="report-section report-break-before grid gap-8 xl:grid-cols-[1fr_1fr]">
         <SectionCard
           title="Project definition and scope"
           description="Report basis and project-level inputs."
@@ -539,6 +538,7 @@ export default async function ReportsPage({
         </SectionCard>
       </section>
 
+    <div className="report-section">
       <SectionCard
         title="Lifecycle results overview"
         description="Project-level lifecycle module totals and relative share of total embodied carbon."
@@ -563,7 +563,7 @@ export default async function ReportsPage({
             </div>
           </div>
 
-          <div className="mt-5 overflow-hidden rounded-xl border border-[#D9E1E7] bg-white">
+          <div className="report-table overflow-hidden rounded-xl border border-[#D9E1E7] bg-white">
             <table className="min-w-full divide-y divide-[#D9E1E7]">
               <thead className="bg-[#F7F9FA]">
                 <tr>
@@ -622,7 +622,9 @@ export default async function ReportsPage({
           </div>
         </div>
       </SectionCard>
+     </div>
 
+     <div className="report-section">
       <SectionCard
         title="Biogenic carbon summary"
         description="Project-level timber and biogenic carbon position."
@@ -653,12 +655,14 @@ export default async function ReportsPage({
           </div>
         </div>
       </SectionCard>
+    </div>
 
+     <div className="report-section">
       <SectionCard
         title="Material hotspot summary"
         description="Highest material-linked contributors from the saved result."
       >
-        <div className="overflow-hidden rounded-xl border border-[#D9E1E7] bg-white">
+        <div className="report-table overflow-hidden rounded-xl border border-[#D9E1E7] bg-white">
           <table className="min-w-full divide-y divide-[#D9E1E7]">
             <thead className="bg-[#F7F9FA]">
               <tr>
@@ -703,12 +707,13 @@ export default async function ReportsPage({
           </table>
         </div>
       </SectionCard>
-
+      </div>
+     <div className="report-section">
       <SectionCard
         title="Full material schedule"
         description="Saved material schedule with quantities, masses, carbon outputs, and biogenic values."
       >
-        <div className="overflow-hidden rounded-xl border border-[#D9E1E7] bg-white">
+        <div className="report-table overflow-hidden rounded-xl border border-[#D9E1E7] bg-white">
           <table className="min-w-full divide-y divide-[#D9E1E7]">
             <thead className="bg-[#F7F9FA]">
               <tr>
@@ -759,7 +764,9 @@ export default async function ReportsPage({
           </table>
         </div>
       </SectionCard>
+      </div>
 
+     <div className="report-section report-break-before">
       <SectionCard
         title="Detailed calculation appendix"
         description="Engineer-readable calculation sheets for each saved material line."
@@ -784,7 +791,7 @@ export default async function ReportsPage({
             return (
               <div
                 key={material.id}
-                className="rounded-2xl border border-[#D9E1E7] bg-white p-5 print:break-inside-avoid-page"
+                className="report-avoid-break rounded-2xl border border-[#D9E1E7] bg-white p-5"
               >
                 <div className="flex items-start justify-between gap-4 border-b border-[#E7ECEF] pb-4">
                   <div>
@@ -886,12 +893,14 @@ export default async function ReportsPage({
           })}
         </div>
       </SectionCard>
+      </div>
 
+     <div className="report-section">
       <SectionCard
         title="Calculation checks and audit notes"
         description="Internal checks carried with the saved result snapshot."
       >
-        <div className="overflow-hidden rounded-xl border border-[#D9E1E7] bg-white">
+        <div className="report-table overflow-hidden rounded-xl border border-[#D9E1E7] bg-white">
           <table className="min-w-full divide-y divide-[#D9E1E7]">
             <thead className="bg-[#F7F9FA]">
               <tr>
@@ -930,6 +939,7 @@ export default async function ReportsPage({
           </table>
         </div>
       </SectionCard>
+      </div>
     </div>
   );
 }
