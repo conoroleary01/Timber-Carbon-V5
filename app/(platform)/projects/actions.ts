@@ -10,6 +10,7 @@ export async function createProject(formData: FormData) {
   const project_location = String(formData.get("project_location") ?? "").trim();
   const reporting_area_m2 = Number(formData.get("reporting_area_m2") ?? 0);
   const gia_demolished_m2 = Number(formData.get("gia_demolished_m2") ?? 0);
+  const a4_distance_km = Number(formData.get("a4_distance_km") ?? 0);
 
   if (!project_name) {
     throw new Error("Project name is required");
@@ -22,6 +23,7 @@ export async function createProject(formData: FormData) {
       project_location,
       reporting_area_m2,
       gia_demolished_m2,
+      a4_distance_km,
     })
     .select("id")
     .single();

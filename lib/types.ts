@@ -32,7 +32,7 @@ export type MaterialLineInput = {
 
   epdA1A3KgCO2ePerDeclaredUnit: number;
 
-    biogenicMethod?: "none" | "fallback_1_64" | "epd";
+  biogenicMethod?: "none" | "fallback_1_64" | "epd";
   woodMassFraction?: number;
   epdStoredBiogenicCarbonKgCO2ePerDeclaredUnit?: number;
 
@@ -50,10 +50,12 @@ export type MaterialLineInput = {
   siteWasteTransportDistanceKm: number;
   siteWasteTransportKgCO2ePerTkm: number;
   siteWasteTreatmentKgCO2ePerDeclaredUnit: number;
+
+  // new methodology support
+  materialFamily?: string;
+  c2KgCO2ePerKg?: number;
+  c3c4KgCO2ePerKg?: number;
 };
-
-
-
 
 export type EndOfLifeRouteInput = {
   id: string;
@@ -66,7 +68,16 @@ export type EndOfLifeRouteInput = {
   disposalKgCO2ePerTonne: number;
 };
 
-
+export type ModuleDefaultsInput = {
+  a4TransportFactorKgCO2ePerTkm: number;
+  a5DemolitionKgCO2ePerM2: number;
+  a5ConstructionConstantKgCO2e: number;
+  a5PercentOfA1A4: number;
+  b2FractionOfA1A5: number;
+  b3FractionOfB2: number;
+  c1KgCO2ePerM2: number;
+  c2KgCO2ePerKg: number;
+};
 
 export type ProjectInput = {
   projectName: string;
@@ -81,10 +92,14 @@ export type ProjectInput = {
     a4DistanceKm: number;
   };
 
+  // keep for compatibility while refactoring calc.ts
   endOfLife: {
     c1KgCO2e: number;
     routes: EndOfLifeRouteInput[];
   };
+
+  // new methodology defaults from Supabase
+  moduleDefaults?: ModuleDefaultsInput;
 
   assumptions?: string[];
 };
@@ -117,7 +132,7 @@ export type MaterialLineResult = {
   siteWasteTransportKgCO2e: number;
   siteWasteTreatmentKgCO2e: number;
 
-    installedMassKg: number;
+  installedMassKg: number;
 
   storedBiogenicCarbonKgCO2e: number;
   a5BiogenicKgCO2e: number;
@@ -167,10 +182,14 @@ export type CalculationResult = {
     A5KgCO2e: number;
     upfrontCarbonKgCO2e: number;
 
+    B2KgCO2e: number;
+    B3KgCO2e: number;
+
     C1KgCO2e: number;
     C2KgCO2e: number;
     C3KgCO2e: number;
     C4KgCO2e: number;
+    C3C4KgCO2e: number;
 
     embodiedCarbonTotalKgCO2e: number;
 

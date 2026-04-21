@@ -18,7 +18,7 @@ export default async function SetupPage({
   const { data: project, error } = await supabase
     .from("projects")
     .select(
-      "id, project_name, project_location, reporting_area_m2, gia_demolished_m2, boq_file_url",
+  "id, project_name, project_location, reporting_area_m2, gia_demolished_m2, a4_distance_km, boq_file_url",
     )
     .eq("id", Number(projectId))
     .single();
@@ -91,6 +91,19 @@ export default async function SetupPage({
               className="w-full rounded-lg border border-[#D9E1E7] bg-white px-3 py-2 text-sm text-[#1F2937] outline-none"
             />
           </label>
+
+          <label className="block">
+          <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-[#667085]">
+          A4 distance km
+        </span>
+        <input
+    name="a4_distance_km"
+    type="number"
+    step="any"
+    defaultValue={project.a4_distance_km ?? 0}
+    className="w-full rounded-lg border border-[#D9E1E7] bg-white px-3 py-2 text-sm text-[#1F2937] outline-none"
+  />
+</label>
 
           <div className="pt-2">
             <button
