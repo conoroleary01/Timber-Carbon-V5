@@ -18,7 +18,7 @@ const BIOGENIC_STORAGE_FACTOR_KGCO2E_PER_KG_TIMBER = -1.64;
 const FALLBACK_MODULE_DEFAULTS: ModuleDefaultsInput = {
   a4TransportFactorKgCO2ePerTkm: 0.1211,
   a5DemolitionKgCO2ePerM2: 17.5,
-  a5ConstructionConstantKgCO2e: 536.385,
+  a5ConstructionKgCO2ePerM2: 4.47,
   a5PercentOfA1A4: 0.01,
   b2FractionOfA1A5: 0.01,
   b3FractionOfB2: 0.25,
@@ -382,7 +382,7 @@ export function calculateProject(input: ProjectInput): CalculationResult {
   );
   assertNonNegative(
     "moduleDefaults.a5ConstructionConstantKgCO2e",
-    moduleDefaults.a5ConstructionConstantKgCO2e,
+    moduleDefaults.a5ConstructionKgCO2ePerM2
   );
   assertRate(
     "moduleDefaults.a5PercentOfA1A4",
@@ -444,7 +444,7 @@ export function calculateProject(input: ProjectInput): CalculationResult {
     moduleDefaults.a5DemolitionKgCO2ePerM2 * input.giaDemolishedM2;
 
   const A5ConstructionKgCO2e =
-    moduleDefaults.a5ConstructionConstantKgCO2e;
+  moduleDefaults.a5ConstructionKgCO2ePerM2 * input.reportingAreaM2;
 
   const A5PercentOfA1A4KgCO2e =
     totalA1ToA4KgCO2e * moduleDefaults.a5PercentOfA1A4;

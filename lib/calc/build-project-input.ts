@@ -266,9 +266,9 @@ export async function buildProjectInputFromSupabase(
       a5DemolitionKgCO2ePerM2: toNumber(
         moduleDefaults.a5_demolition_kgco2e_per_m2,
       ),
-      a5ConstructionConstantKgCO2e: toNumber(
-        moduleDefaults.a5_construction_constant_kgco2e,
-      ),
+      a5ConstructionKgCO2ePerM2: toNumber(
+  moduleDefaults.a5_construction_kgco2e_per_m2,
+),
       a5PercentOfA1A4: toNumber(moduleDefaults.a5_percent_of_a1_a4),
       b2FractionOfA1A5: toNumber(moduleDefaults.b2_fraction_of_a1_a5),
       b3FractionOfB2: toNumber(moduleDefaults.b3_fraction_of_b2),

@@ -1,7 +1,10 @@
 import { notFound } from "next/navigation";
 import SectionCard from "@/components/ui/section-card";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { updateProjectBoqLineMapping } from "../actions";
+import {
+  runProjectCalculation,
+  updateProjectBoqLineMapping,
+} from "../actions";
 
 export default async function MappingPage({
   params,
@@ -42,12 +45,41 @@ export default async function MappingPage({
     throw new Error(productsError.message);
   }
 
+  const runProjectCalculationWithId = runProjectCalculation.bind(
+    null,
+    Number(projectId),
+  );
+
+  const mappedCount = (boqLines ?? []).filter((line) => !!line.matched_product_id)
+    .length;
+  const totalCount = boqLines?.length ?? 0;
+
   return (
     <div className="space-y-8">
       <SectionCard
         title="Material mapping"
         description="Assign each uploaded BOQ row to a product in your material database."
       >
+        <div className="mb-6 flex flex-col gap-4 rounded-xl border border-[#D9E1E7] bg-[#F7F9FA] p-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="text-sm font-medium text-[#1F2937]">
+              Mapping progress
+            </p>
+            <p className="mt-1 text-sm text-[#667085]">
+              {mappedCount} of {totalCount} rows mapped
+            </p>
+          </div>
+
+          <form action={runProjectCalculationWithId}>
+            <button
+              type="submit"
+              className="inline-flex rounded-lg bg-cygnum-green px-4 py-2 text-sm font-medium text-white hover:bg-cygnum-green-dark"
+            >
+              Run Calculation
+            </button>
+          </form>
+        </div>
+
         <div className="overflow-hidden rounded-xl border border-[#D9E1E7] bg-white">
           <table className="min-w-full divide-y divide-[#D9E1E7]">
             <thead className="bg-[#F7F9FA]">

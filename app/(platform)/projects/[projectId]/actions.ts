@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { parseBoqWorkbook } from "@/lib/boq/parse-boq";
+import { buildProjectInputFromSupabase } from "@/lib/calc/build-project-input";
+import { calculateProject } from "@/lib/calc";
 
 export async function updateProjectDetails(
   projectId: number,
@@ -180,4 +182,34 @@ export async function updateProjectBoqLineMapping(
 
   revalidatePath(`/projects/${projectId}/mapping`);
   revalidatePath(`/projects/${projectId}/validation`);
+}
+
+export async function runProjectCalculation(projectId: number) {
+  const supabase = createServerSupabaseClient();
+
+  const { projectInput } = await buildProjectInputFromSupabase(projectId);
+  const result = calculateProject(projectInput);
+
+  const { error } = await supabase.from("project_results").upsert(
+    {
+      project_id: projectId,
+      input_json: projectInput,
+      result_json: result,
+      updated_at: new Date().toISOString(),
+    },
+    {
+      onConflict: "project_id",
+    },
+  );
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath(`/projects/${projectId}/mapping`);
+  revalidatePath(`/projects/${projectId}/results`);
+  revalidatePath(`/projects/${projectId}/breakdown`);
+  revalidatePath("/projects");
+
+  redirect(`/projects/${projectId}/results`);
 }

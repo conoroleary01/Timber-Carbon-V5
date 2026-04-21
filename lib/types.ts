@@ -71,7 +71,7 @@ export type EndOfLifeRouteInput = {
 export type ModuleDefaultsInput = {
   a4TransportFactorKgCO2ePerTkm: number;
   a5DemolitionKgCO2ePerM2: number;
-  a5ConstructionConstantKgCO2e: number;
+  a5ConstructionKgCO2ePerM2: number;
   a5PercentOfA1A4: number;
   b2FractionOfA1A5: number;
   b3FractionOfB2: number;
