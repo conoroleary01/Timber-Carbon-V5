@@ -87,14 +87,20 @@ export async function buildProjectInputFromSupabase(
     ...new Set(
       (products ?? [])
         .map((product) => product.material_family)
-        .filter((value): value is string => typeof value === "string" && value.length > 0),
+        .filter(
+          (value): value is string =>
+            typeof value === "string" && value.length > 0,
+        ),
     ),
   ];
 
   const { data: wasteDefaults, error: wasteError } = await supabase
     .from("waste_defaults")
     .select("*")
-    .in("material_family", materialFamilies.length ? materialFamilies : ["__none__"]);
+    .in(
+      "material_family",
+      materialFamilies.length ? materialFamilies : ["__none__"],
+    );
 
   if (wasteError) {
     throw new Error(wasteError.message);
@@ -172,6 +178,25 @@ export async function buildProjectInputFromSupabase(
       (c) => c.material_family === product.material_family,
     );
 
+    const c2Factor =
+      productCFactor?.c2_kgco2e_per_kg != null
+        ? toNumber(productCFactor.c2_kgco2e_per_kg)
+        : toNumber(moduleDefaults.c2_kgco2e_per_kg);
+
+    const c3c4NonBiogenicFactor =
+      productCFactor?.c3c4_non_biogenic_kgco2e_per_kg != null
+        ? toNumber(productCFactor.c3c4_non_biogenic_kgco2e_per_kg)
+        : familyCFactor?.c3c4_non_biogenic_kgco2e_per_kg != null
+          ? toNumber(familyCFactor.c3c4_non_biogenic_kgco2e_per_kg)
+          : undefined;
+
+    const legacyC3c4Factor =
+      productCFactor?.c3c4_kgco2e_per_kg != null
+        ? toNumber(productCFactor.c3c4_kgco2e_per_kg)
+        : familyCFactor?.c3c4_kgco2e_per_kg != null
+          ? toNumber(familyCFactor.c3c4_kgco2e_per_kg)
+          : undefined;
+
     return {
       id: String(line.id),
       name: line.raw_description ?? product.name ?? `Line ${line.id}`,
@@ -201,8 +226,10 @@ export async function buildProjectInputFromSupabase(
         | "fallback_1_64"
         | "epd",
       woodMassFraction: product.wood_mass_fraction ?? undefined,
+
+      // Use the EPD table as the source of truth
       epdStoredBiogenicCarbonKgCO2ePerDeclaredUnit:
-        product.epd_stored_biogenic_carbon_kgco2e_per_declared_unit ?? undefined,
+        epd?.stored_biogenic_carbon_kgco2e_per_declared_unit ?? undefined,
 
       massTonnesPerDeclaredUnit: 0,
 
@@ -230,11 +257,13 @@ export async function buildProjectInputFromSupabase(
       ),
 
       materialFamily: product.material_family ?? undefined,
-      c2KgCO2ePerKg:
-        productCFactor?.c2_kgco2e_per_kg != null
-          ? toNumber(productCFactor.c2_kgco2e_per_kg)
-          : toNumber(moduleDefaults.c2_kgco2e_per_kg),
-      c3c4KgCO2ePerKg: toNumber(familyCFactor?.c3c4_kgco2e_per_kg),
+      c2KgCO2ePerKg: c2Factor,
+
+      // New field used by the new calculation logic
+      c3c4NonBiogenicKgCO2ePerKg: c3c4NonBiogenicFactor,
+
+      // Legacy fallback kept temporarily during migration
+      c3c4KgCO2ePerKg: legacyC3c4Factor,
     };
   });
 
@@ -245,6 +274,9 @@ export async function buildProjectInputFromSupabase(
     referenceStudyPeriodYears: 50,
     assumptions: [
       "Built from Supabase project, mapped BOQ rows, products, EPDs, waste defaults, transport origins, active manufacturing factor, and active module defaults.",
+      "A5 biogenic release is assumed zero because no site waste is applied in the current method.",
+      "Biogenic C3-C4 release is based on the stored biogenic carbon remaining in the installed asset.",
+      "Non-biogenic C3-C4 uses a separate non-biogenic factor where available.",
     ],
     materials,
     factory: {
@@ -267,8 +299,8 @@ export async function buildProjectInputFromSupabase(
         moduleDefaults.a5_demolition_kgco2e_per_m2,
       ),
       a5ConstructionKgCO2ePerM2: toNumber(
-  moduleDefaults.a5_construction_kgco2e_per_m2,
-),
+        moduleDefaults.a5_construction_kgco2e_per_m2,
+      ),
       a5PercentOfA1A4: toNumber(moduleDefaults.a5_percent_of_a1_a4),
       b2FractionOfA1A5: toNumber(moduleDefaults.b2_fraction_of_a1_a5),
       b3FractionOfB2: toNumber(moduleDefaults.b3_fraction_of_b2),

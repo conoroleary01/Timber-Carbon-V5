@@ -75,6 +75,22 @@ function deriveInstalledMassKg(
   return declaredInstalledQty * massTonnesPerDeclaredUnit * 1000;
 }
 
+function isBiogenicMaterial(line: MaterialLineInput): boolean {
+  return (line.biogenicMethod ?? "none") !== "none";
+}
+
+function getC2Factor(line: MaterialLineInput, moduleDefaults: ModuleDefaultsInput): number {
+  return line.c2KgCO2ePerKg ?? moduleDefaults.c2KgCO2ePerKg;
+}
+
+function getC3C4NonBiogenicFactor(line: MaterialLineInput): number {
+  return (
+    line.c3c4NonBiogenicKgCO2ePerKg ??
+    line.c3c4KgCO2ePerKg ??
+    0
+  );
+}
+
 function deriveStoredBiogenicCarbonKgCO2e(
   line: MaterialLineInput,
   declaredInstalledQty: number,
@@ -93,10 +109,7 @@ function deriveStoredBiogenicCarbonKgCO2e(
       );
     }
 
-    return (
-      declaredInstalledQty *
-      line.epdStoredBiogenicCarbonKgCO2ePerDeclaredUnit
-    );
+    return declaredInstalledQty * line.epdStoredBiogenicCarbonKgCO2ePerDeclaredUnit;
   }
 
   if (biogenicMethod === "fallback_1_64") {
@@ -112,11 +125,30 @@ function deriveStoredBiogenicCarbonKgCO2e(
   throw new Error(`${line.name}: unsupported biogenicMethod "${biogenicMethod}"`);
 }
 
-function deriveA5BiogenicKgCO2e(
-  storedBiogenicCarbonKgCO2e: number,
-  siteWasteRate: number,
+function deriveA5BiogenicKgCO2e(): number {
+  return 0;
+}
+
+function deriveC3C4BiogenicKgCO2e(
+  line: MaterialLineInput,
+  netStoredBiogenicCarbonKgCO2e: number,
 ): number {
-  return Math.abs(storedBiogenicCarbonKgCO2e) * siteWasteRate;
+  if (!isBiogenicMaterial(line)) {
+    return 0;
+  }
+
+  return Math.abs(netStoredBiogenicCarbonKgCO2e);
+}
+
+function deriveC3C4NonBiogenicKgCO2e(
+  line: MaterialLineInput,
+  installedMassKg: number,
+): number {
+  if (isBiogenicMaterial(line)) {
+    return 0;
+  }
+
+  return installedMassKg * getC3C4NonBiogenicFactor(line);
 }
 
 function validateMaterial(line: MaterialLineInput) {
@@ -228,6 +260,13 @@ function validateMaterial(line: MaterialLineInput) {
     assertNonNegative(`${line.name} c2KgCO2ePerKg`, line.c2KgCO2ePerKg);
   }
 
+  if (line.c3c4NonBiogenicKgCO2ePerKg != null) {
+    assertNonNegative(
+      `${line.name} c3c4NonBiogenicKgCO2ePerKg`,
+      line.c3c4NonBiogenicKgCO2ePerKg,
+    );
+  }
+
   if (line.c3c4KgCO2ePerKg != null) {
     assertNonNegative(`${line.name} c3c4KgCO2ePerKg`, line.c3c4KgCO2ePerKg);
   }
@@ -317,13 +356,22 @@ function calculateMaterialLine(line: MaterialLineInput): MaterialLineResult {
     installedMassKg,
   );
 
-  const a5BiogenicKgCO2e = deriveA5BiogenicKgCO2e(
-    storedBiogenicCarbonKgCO2e,
-    line.siteWasteRate,
-  );
+  const a5BiogenicKgCO2e = deriveA5BiogenicKgCO2e();
 
   const netStoredBiogenicCarbonKgCO2e =
     storedBiogenicCarbonKgCO2e + a5BiogenicKgCO2e;
+
+  const c3c4BiogenicKgCO2e = deriveC3C4BiogenicKgCO2e(
+    line,
+    netStoredBiogenicCarbonKgCO2e,
+  );
+
+  const c3c4NonBiogenicKgCO2e = deriveC3C4NonBiogenicKgCO2e(
+    line,
+    installedMassKg,
+  );
+
+  const c3c4KgCO2e = c3c4BiogenicKgCO2e + c3c4NonBiogenicKgCO2e;
 
   return {
     id: line.id,
@@ -358,6 +406,10 @@ function calculateMaterialLine(line: MaterialLineInput): MaterialLineResult {
     storedBiogenicCarbonKgCO2e,
     a5BiogenicKgCO2e,
     netStoredBiogenicCarbonKgCO2e,
+
+    c3c4BiogenicKgCO2e,
+    c3c4NonBiogenicKgCO2e,
+    c3c4KgCO2e,
   };
 }
 
@@ -365,11 +417,11 @@ export function calculateProject(input: ProjectInput): CalculationResult {
   const moduleDefaults = getModuleDefaults(input);
 
   assertNonNegative("reportingAreaM2", input.reportingAreaM2);
+  assertNonNegative("giaDemolishedM2", input.giaDemolishedM2);
   assertNonNegative(
     "factory.allocatedManufacturingKgCO2e",
     input.factory.allocatedManufacturingKgCO2e,
   );
-  assertNonNegative("giaDemolishedM2", input.giaDemolishedM2);
   assertNonNegative("factory.a4DistanceKm", input.factory.a4DistanceKm);
 
   assertNonNegative(
@@ -381,18 +433,18 @@ export function calculateProject(input: ProjectInput): CalculationResult {
     moduleDefaults.a5DemolitionKgCO2ePerM2,
   );
   assertNonNegative(
-    "moduleDefaults.a5ConstructionConstantKgCO2e",
-    moduleDefaults.a5ConstructionKgCO2ePerM2
+    "moduleDefaults.a5ConstructionKgCO2ePerM2",
+    moduleDefaults.a5ConstructionKgCO2ePerM2,
   );
-  assertRate(
+  assertNonNegative(
     "moduleDefaults.a5PercentOfA1A4",
     moduleDefaults.a5PercentOfA1A4,
   );
-  assertRate(
+  assertNonNegative(
     "moduleDefaults.b2FractionOfA1A5",
     moduleDefaults.b2FractionOfA1A5,
   );
-  assertRate(
+  assertNonNegative(
     "moduleDefaults.b3FractionOfB2",
     moduleDefaults.b3FractionOfB2,
   );
@@ -406,7 +458,6 @@ export function calculateProject(input: ProjectInput): CalculationResult {
   );
 
   const materials = input.materials.map(calculateMaterialLine);
-  const materialInputById = new Map(input.materials.map((m) => [m.id, m]));
 
   const purchasedProductsA1A3KgCO2e = sum(
     materials.map((m) => m.supplierA1A3GrossKgCO2e),
@@ -443,9 +494,9 @@ export function calculateProject(input: ProjectInput): CalculationResult {
   const A5DemolitionKgCO2e =
     moduleDefaults.a5DemolitionKgCO2ePerM2 * input.giaDemolishedM2;
 
- const A5ConstructionKgCO2e =
-  moduleDefaults.a5ConstructionKgCO2ePerM2 * input.reportingAreaM2;
-  
+  const A5ConstructionKgCO2e =
+    moduleDefaults.a5ConstructionKgCO2ePerM2 * input.reportingAreaM2;
+
   const A5PercentOfA1A4KgCO2e =
     totalA1ToA4KgCO2e * moduleDefaults.a5PercentOfA1A4;
 
@@ -478,31 +529,29 @@ export function calculateProject(input: ProjectInput): CalculationResult {
     B2KgCO2e * moduleDefaults.b3FractionOfB2;
 
   const C1KgCO2e =
-    input.reportingAreaM2 * moduleDefaults.c1KgCO2ePerM2;
+    moduleDefaults.c1KgCO2ePerM2 * input.reportingAreaM2;
 
   const C2KgCO2e = sum(
-    materials.map((material) => {
-      const line = materialInputById.get(material.id);
-      const factor =
-        line?.c2KgCO2ePerKg ?? moduleDefaults.c2KgCO2ePerKg;
-
-      return material.installedMassKg * factor;
+    materials.map((material, index) => {
+      const sourceLine = input.materials[index];
+      return material.installedMassKg * getC2Factor(sourceLine, moduleDefaults);
     }),
   );
 
-  const C3C4KgCO2e = sum(
-    materials.map((material) => {
-      const line = materialInputById.get(material.id);
-      const factor = line?.c3c4KgCO2ePerKg ?? 0;
-
-      return material.installedMassKg * factor;
-    }),
+  const C3C4BiogenicKgCO2e = sum(
+    materials.map((m) => m.c3c4BiogenicKgCO2e),
   );
 
-  // keep legacy module fields alive for the current UI.
-  // for now, combined C3-C4 is reported through C3 and C4 is set to zero.
-  const C3KgCO2e = C3C4KgCO2e;
-  const C4KgCO2e = 0;
+  const C3C4NonBiogenicKgCO2e = sum(
+    materials.map((m) => m.c3c4NonBiogenicKgCO2e),
+  );
+
+  const C3C4KgCO2e =
+    C3C4BiogenicKgCO2e + C3C4NonBiogenicKgCO2e;
+
+  // kept for compatibility with older UI/components
+  const C3KgCO2e = C3C4BiogenicKgCO2e;
+  const C4KgCO2e = C3C4NonBiogenicKgCO2e;
 
   const embodiedCarbonTotalKgCO2e =
     upfrontCarbonKgCO2e +
@@ -532,6 +581,11 @@ export function calculateProject(input: ProjectInput): CalculationResult {
       "A5 stack",
       A5FossilKgCO2e + A5BiogenicKgCO2e,
       A5KgCO2e,
+    ),
+    check(
+      "C3-C4 stack",
+      C3C4BiogenicKgCO2e + C3C4NonBiogenicKgCO2e,
+      C3C4KgCO2e,
     ),
     check(
       "Embodied carbon total stack",
@@ -577,6 +631,9 @@ export function calculateProject(input: ProjectInput): CalculationResult {
       C2KgCO2e,
       C3KgCO2e,
       C4KgCO2e,
+
+      C3C4BiogenicKgCO2e,
+      C3C4NonBiogenicKgCO2e,
       C3C4KgCO2e,
 
       embodiedCarbonTotalKgCO2e,

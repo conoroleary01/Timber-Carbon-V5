@@ -51,9 +51,13 @@ export type MaterialLineInput = {
   siteWasteTransportKgCO2ePerTkm: number;
   siteWasteTreatmentKgCO2ePerDeclaredUnit: number;
 
-  // new methodology support
   materialFamily?: string;
   c2KgCO2ePerKg?: number;
+
+  // NEW: non-biogenic-only C3-C4 factor
+  c3c4NonBiogenicKgCO2ePerKg?: number;
+
+  // LEGACY alias kept temporarily so existing data / adapters still work
   c3c4KgCO2ePerKg?: number;
 };
 
@@ -92,15 +96,13 @@ export type ProjectInput = {
     a4DistanceKm: number;
   };
 
-  // keep for compatibility while refactoring calc.ts
+  // kept for compatibility with older files/pages
   endOfLife: {
     c1KgCO2e: number;
     routes: EndOfLifeRouteInput[];
   };
 
-  // new methodology defaults from Supabase
   moduleDefaults?: ModuleDefaultsInput;
-
   assumptions?: string[];
 };
 
@@ -137,6 +139,10 @@ export type MaterialLineResult = {
   storedBiogenicCarbonKgCO2e: number;
   a5BiogenicKgCO2e: number;
   netStoredBiogenicCarbonKgCO2e: number;
+
+  c3c4BiogenicKgCO2e: number;
+  c3c4NonBiogenicKgCO2e: number;
+  c3c4KgCO2e: number;
 };
 
 export type ReplacementResult = {
@@ -187,8 +193,13 @@ export type CalculationResult = {
 
     C1KgCO2e: number;
     C2KgCO2e: number;
+
+    // kept for compatibility with older pages/components
     C3KgCO2e: number;
     C4KgCO2e: number;
+
+    C3C4BiogenicKgCO2e: number;
+    C3C4NonBiogenicKgCO2e: number;
     C3C4KgCO2e: number;
 
     embodiedCarbonTotalKgCO2e: number;
