@@ -74,7 +74,7 @@ export default async function ResultsPage({
   const total = result.modules.embodiedCarbonTotalKgCO2e;
   const upfront = result.modules.upfrontCarbonKgCO2e;
   const reportingArea = input.reportingAreaM2 || 0;
-  const intensity = result.modules.embodiedCarbonPerM2KgCO2e ?? 0;
+  const intensity = result.modules.upfrontCarbonPerM2KgCO2e ?? 0;
   const materialsCount = result.materials.length;
 
   const moduleRows = [
@@ -250,7 +250,7 @@ export default async function ResultsPage({
 
           <div className="rounded-2xl border border-[#D9E1E7] bg-white p-6">
             <p className="text-sm font-medium text-[#667085]">
-              Carbon intensity
+              Carbon intensity (A1-A5)
             </p>
             <p className="mt-4 text-4xl font-semibold tracking-tight text-[#1F2937]">
               {formatNumber(intensity)}

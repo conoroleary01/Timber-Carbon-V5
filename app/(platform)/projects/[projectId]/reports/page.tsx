@@ -246,7 +246,7 @@ export default async function ReportsPage({
 
   const total = getModuleValue(modules, ["embodiedCarbonTotalKgCO2e"]);
   const upfront = getModuleValue(modules, ["upfrontCarbonKgCO2e"]);
-  const intensity = getModuleValue(modules, ["embodiedCarbonPerM2KgCO2e"]);
+  const intensity = getModuleValue(modules, ["upfrontCarbonPerM2KgCO2e"]);
   const upfrontIntensity = getModuleValue(modules, ["upfrontCarbonPerM2KgCO2e"]);
   const storedBiogenic = getModuleValue(modules, ["storedBiogenicCarbonKgCO2e"]);
   const a5Biogenic = getModuleValue(modules, ["A5BiogenicKgCO2e"]);
