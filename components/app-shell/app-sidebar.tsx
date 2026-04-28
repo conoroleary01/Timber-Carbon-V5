@@ -52,7 +52,7 @@ export default function AppSidebar() {
       </nav>
 
       <div className="border-t border-[#D9E1E7] px-4 py-4 text-xs text-[#667085]">
-        MVP build
+        Conor O'Leary
       </div>
     </aside>
   );

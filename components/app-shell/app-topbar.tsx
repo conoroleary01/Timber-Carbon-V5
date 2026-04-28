@@ -20,39 +20,22 @@ export default function AppTopbar({
   status = "Draft",
 }: Props) {
   return (
-    <header className="flex h-16 items-center justify-between border-b border-[#D9E1E7] bg-white px-8">
-      <div>
-        <p className="text-xs font-medium uppercase tracking-wide text-[#667085]">
-          Cygnum Carbon
-        </p>
-        <h1 className="text-sm font-semibold text-[#1F2937]">{title}</h1>
-      </div>
+    <header className="border-b border-cygnum-border bg-white">
+  <div className="flex min-h-[72px] items-center justify-between px-8">
+    <div>
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cygnum-charcoal-2">
+        Cygnum Carbon
+      </p>
+      <h1 className="text-2xl font-semibold text-cygnum-charcoal">
+        Embodied carbon platform
+      </h1>
+    </div>
 
-      <div className="flex items-center gap-3">
-        <span
-          className={`rounded-full px-3 py-1 text-xs font-medium ${getStatusClasses(
-            status,
-          )}`}
-        >
-          {status}
-        </span>
-
-        <span className="text-xs text-[#667085]">Saved</span>
-
-        <button
-          type="button"
-          className="rounded-lg border border-[#D9E1E7] bg-white px-3 py-2 text-sm font-medium text-[#1F2937]"
-        >
-          Save
-        </button>
-
-        <button
-          type="button"
-          className="rounded-lg bg-cygnum-green px-3 py-2 text-sm font-medium text-white hover:bg-cygnum-green-dark"
-        >
-          Run Calculation
-        </button>
-      </div>
-    </header>
+  
+    <div className="rounded-full border border-cygnum-border bg-cygnum-surface px-4 py-2 text-sm text-cygnum-charcoal-2">
+      Conor O'Leary
+    </div>
+  </div>
+</header>
   );
 }
