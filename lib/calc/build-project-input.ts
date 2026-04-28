@@ -229,8 +229,8 @@ export async function buildProjectInputFromSupabase(
 
       // Use the EPD table as the source of truth
       epdStoredBiogenicCarbonKgCO2ePerDeclaredUnit:
-        epd?.stored_biogenic_carbon_kgco2e_per_declared_unit ?? undefined,
-
+  epd?.stored_biogenic_carbon_kgco2e_per_declared_unit ?? undefined,
+  
       massTonnesPerDeclaredUnit: 0,
 
       inboundDistanceKm: toNumber(origin?.distance_to_cygnum_km),
@@ -256,14 +256,18 @@ export async function buildProjectInputFromSupabase(
         waste?.site_waste_treatment_kgco2e_per_declared_unit,
       ),
 
-      materialFamily: product.material_family ?? undefined,
-      c2KgCO2ePerKg: c2Factor,
+     materialFamily: product.material_family ?? undefined,
+c2KgCO2ePerKg:
+  productCFactor?.c2_kgco2e_per_kg != null
+    ? toNumber(productCFactor.c2_kgco2e_per_kg)
+    : toNumber(moduleDefaults.c2_kgco2e_per_kg),
 
-      // New field used by the new calculation logic
-      c3c4NonBiogenicKgCO2ePerKg: c3c4NonBiogenicFactor,
-
-      // Legacy fallback kept temporarily during migration
-      c3c4KgCO2ePerKg: legacyC3c4Factor,
+c3c4KgCO2ePerKg:
+  productCFactor?.c3c4_kgco2e_per_kg != null
+    ? toNumber(productCFactor.c3c4_kgco2e_per_kg)
+    : familyCFactor?.c3c4_kgco2e_per_kg != null
+      ? toNumber(familyCFactor.c3c4_kgco2e_per_kg)
+      : 0,
     };
   });
 

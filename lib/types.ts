@@ -52,13 +52,11 @@ export type MaterialLineInput = {
   siteWasteTreatmentKgCO2ePerDeclaredUnit: number;
 
   materialFamily?: string;
-  c2KgCO2ePerKg?: number;
+c2KgCO2ePerKg?: number;
+c3c4NonBiogenicKgCO2ePerKg?: number;
 
-  // NEW: non-biogenic-only C3-C4 factor
-  c3c4NonBiogenicKgCO2ePerKg?: number;
-
-  // LEGACY alias kept temporarily so existing data / adapters still work
-  c3c4KgCO2ePerKg?: number;
+// legacy alias only while migrating old data
+c3c4KgCO2ePerKg?: number;
 };
 
 export type EndOfLifeRouteInput = {

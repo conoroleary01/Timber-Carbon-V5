@@ -89,6 +89,14 @@ function getC3C4NonBiogenicFactor(line: MaterialLineInput): number {
     line.c3c4KgCO2ePerKg ??
     0
   );
+
+  function getC3C4FossilFactor(line: MaterialLineInput): number {
+  return (
+    line.c3c4KgCO2ePerKg ??
+    line.c3c4NonBiogenicKgCO2ePerKg ??
+    0
+  );
+}
 }
 
 function deriveStoredBiogenicCarbonKgCO2e(
@@ -267,9 +275,12 @@ function validateMaterial(line: MaterialLineInput) {
     );
   }
 
-  if (line.c3c4KgCO2ePerKg != null) {
-    assertNonNegative(`${line.name} c3c4KgCO2ePerKg`, line.c3c4KgCO2ePerKg);
-  }
+  if (line.c3c4NonBiogenicKgCO2ePerKg != null) {
+  assertNonNegative(
+    `${line.name} c3c4NonBiogenicKgCO2ePerKg`,
+    line.c3c4NonBiogenicKgCO2ePerKg,
+  );
+}
 }
 
 function calculateMaterialLine(line: MaterialLineInput): MaterialLineResult {
@@ -361,6 +372,8 @@ function calculateMaterialLine(line: MaterialLineInput): MaterialLineResult {
   const netStoredBiogenicCarbonKgCO2e =
     storedBiogenicCarbonKgCO2e + a5BiogenicKgCO2e;
 
+
+    
   const c3c4BiogenicKgCO2e = deriveC3C4BiogenicKgCO2e(
     line,
     netStoredBiogenicCarbonKgCO2e,
@@ -539,27 +552,41 @@ export function calculateProject(input: ProjectInput): CalculationResult {
   );
 
   const C3C4BiogenicKgCO2e = sum(
-    materials.map((m) => m.c3c4BiogenicKgCO2e),
-  );
+  materials.map((material) => material.c3c4BiogenicKgCO2e),
+);
 
-  const C3C4NonBiogenicKgCO2e = sum(
-    materials.map((m) => m.c3c4NonBiogenicKgCO2e),
-  );
+const C3C4NonBiogenicKgCO2e = sum(
+  materials.map((material) => material.c3c4NonBiogenicKgCO2e),
+);
 
-  const C3C4KgCO2e =
-    C3C4BiogenicKgCO2e + C3C4NonBiogenicKgCO2e;
+// fossil C3-C4 from both biogenic and non-biogenic materials
+const C3C4FossilKgCO2e = sum(
+  materials.map((material, index) => {
+    const sourceLine = input.materials[index];
 
-  // kept for compatibility with older UI/components
-  const C3KgCO2e = C3C4BiogenicKgCO2e;
-  const C4KgCO2e = C3C4NonBiogenicKgCO2e;
+    const fossilFactor =
+      sourceLine?.c3c4KgCO2ePerKg ??
+      sourceLine?.c3c4NonBiogenicKgCO2ePerKg ??
+      0;
 
-  const embodiedCarbonTotalKgCO2e =
-    upfrontCarbonKgCO2e +
-    B2KgCO2e +
-    B3KgCO2e +
-    C1KgCO2e +
-    C2KgCO2e +
-    C3C4KgCO2e;
+    return material.installedMassKg * fossilFactor;
+  }),
+);
+
+// main C3-C4 figure used in totals and graphs = fossil only
+const C3C4KgCO2e = C3C4FossilKgCO2e;
+
+// keep current UI / charts alive
+const C3KgCO2e = C3C4FossilKgCO2e;
+const C4KgCO2e = 0;
+
+const embodiedCarbonTotalKgCO2e =
+  upfrontCarbonKgCO2e +
+  B2KgCO2e +
+  B3KgCO2e +
+  C1KgCO2e +
+  C2KgCO2e +
+  C3C4FossilKgCO2e;
 
   const checks: CalculationCheck[] = [
     ...materials.map((m) =>
@@ -583,20 +610,20 @@ export function calculateProject(input: ProjectInput): CalculationResult {
       A5KgCO2e,
     ),
     check(
-      "C3-C4 stack",
-      C3C4BiogenicKgCO2e + C3C4NonBiogenicKgCO2e,
-      C3C4KgCO2e,
-    ),
+  "C3-C4 fossil stack",
+  C3C4FossilKgCO2e,
+  C3C4KgCO2e,
+),
     check(
-      "Embodied carbon total stack",
-      upfrontCarbonKgCO2e +
-        B2KgCO2e +
-        B3KgCO2e +
-        C1KgCO2e +
-        C2KgCO2e +
-        C3C4KgCO2e,
-      embodiedCarbonTotalKgCO2e,
-    ),
+  "Embodied carbon total stack",
+  upfrontCarbonKgCO2e +
+    B2KgCO2e +
+    B3KgCO2e +
+    C1KgCO2e +
+    C2KgCO2e +
+    C3C4FossilKgCO2e,
+  embodiedCarbonTotalKgCO2e,
+),
   ];
 
   return {
