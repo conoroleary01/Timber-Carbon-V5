@@ -247,10 +247,10 @@ export default async function BreakdownPage({
               Back to Results
             </Link>
             <Link
-              href={`/projects/${projectId}/mapping`}
+              href={`/projects/${projectId}/reports`}
               className="inline-flex rounded-lg bg-cygnum-green px-4 py-2 text-sm font-medium text-white hover:bg-cygnum-green-dark"
             >
-              Return to Mapping
+              View Reports
             </Link>
           </div>
         </div>
